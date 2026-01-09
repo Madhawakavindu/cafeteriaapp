@@ -1,9 +1,6 @@
 import 'package:cafeteria/features/auth/presentation/menu/data/presentation/screens/menu_screen.dart';
 import 'package:flutter/material.dart';
 import '/core/constants/app_colors.dart';
-import '/services/firestore_service.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cafeteria/features/auth/presentation/widgets/auth_form.dart';
 
 class CanteenSelectScreen extends StatelessWidget {
   const CanteenSelectScreen({super.key});
@@ -36,9 +33,6 @@ class CanteenSelectScreen extends StatelessWidget {
                     padding: const EdgeInsets.all(20),
                   ),
                   onPressed: () async {
-                    await FirestoreService().users
-                        .doc(FirebaseAuth.instance.currentUser!.uid)
-                        .update({'selectedCanteen': c['id']});
                     Navigator.of(context).pushReplacement(
                       MaterialPageRoute(builder: (_) => const MenuScreen()),
                     );

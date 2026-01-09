@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../../core/widgets/custom_button.dart';
 import 'package:cafeteria/features/auth/presentation/widgets/auth_form.dart';
-import 'login_screen.dart';
 
 class RegisterScreen extends StatelessWidget {
   const RegisterScreen({super.key});

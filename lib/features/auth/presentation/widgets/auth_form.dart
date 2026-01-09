@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../core/utils/helpers.dart';
 import '../../../../core/widgets/custom_button.dart';
-import '../../../../services/firebase_auth_service.dart';
-import '../../../../services/firestore_service.dart';
-import '.././canteen_selection/presentation/canteen_select_screen.dart';
+import 'package:cafeteria/features/auth/presentation/canteen_selection/presentation/canteen_select_screen.dart';
 
 class AuthForm extends StatefulWidget {
   final bool isLogin;
@@ -16,8 +14,6 @@ class AuthForm extends StatefulWidget {
 class _AuthFormState extends State<AuthForm> {
   final _emailController = TextEditingController();
   final _passController = TextEditingController();
-  final _authService = FirebaseAuthService();
-  final _firestore = FirestoreService();
   bool _isLoading = false;
 
   Future<void> _submit() async {
@@ -25,19 +21,8 @@ class _AuthFormState extends State<AuthForm> {
 
     setState(() => _isLoading = true);
     try {
-      if (widget.isLogin) {
-        await _authService.signIn(_emailController.text, _passController.text);
-      } else {
-        final user = await _authService.register(
-          _emailController.text,
-          _passController.text,
-        );
-        await _firestore.users.doc(user!.uid).set({
-          'email': _emailController.text,
-          'role': 'student',
-        });
-      }
-
+      // TODO: Implement authentication logic
+      // For now, just navigate to canteen selection
       if (mounted) {
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (_) => const CanteenSelectScreen()),

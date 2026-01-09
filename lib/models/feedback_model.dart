@@ -1,5 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-
 class FeedbackModel {
   final String id;
   final String canteenId;
@@ -21,7 +19,7 @@ class FeedbackModel {
       canteenId: map['canteenId'],
       comment: map['comment'],
       rating: map['rating'],
-      timestamp: (map['timestamp'] as Timestamp).toDate(),
+      timestamp: DateTime.now(),
     );
   }
 }

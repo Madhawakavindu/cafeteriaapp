@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../../../core/widgets/custom_button.dart';
-import '../../../../services/firebase_auth_service.dart';
 import 'package:cafeteria/features/auth/presentation/widgets/auth_form.dart';
 import 'package:cafeteria/features/auth/presentation/screens/register_screen.dart';
-import '.././canteen_selection/presentation/canteen_select_screen.dart';
 
 class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
