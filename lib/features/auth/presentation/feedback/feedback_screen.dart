@@ -15,6 +15,7 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
   final _controller = TextEditingController();
   double _rating = 0;
   String _selectedCanteen = 'Canteen1';
+  String _userId = 'user_${DateTime.now().millisecondsSinceEpoch}';
   Future<List<FeedbackModel>>? _feedbackFuture;
 
   @override
@@ -88,6 +89,7 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
                   canteenId: _selectedCanteen,
                   comment: _controller.text,
                   rating: _rating.toInt(),
+                  userId: _userId,
                 ).then((_) {
                   setState(() {
                     _feedbackFuture = FeedbackService.getFeedbackForCanteen(

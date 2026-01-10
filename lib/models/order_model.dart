@@ -14,4 +14,15 @@ class OrderModel {
     required this.vegetables,
     required this.status,
   });
+
+  factory OrderModel.fromMap(Map<String, dynamic> map) {
+    return OrderModel(
+      id: map['id'] ?? '',
+      canteenId: map['canteenId'] ?? '',
+      mealType: map['mealType'] ?? '',
+      mainFood: map['mainFood'] ?? '',
+      vegetables: (map['vegetables'] as String?)?.split(',') ?? [],
+      status: map['status'] ?? 'Pending',
+    );
+  }
 }

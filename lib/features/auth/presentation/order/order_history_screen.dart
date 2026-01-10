@@ -12,11 +12,12 @@ class OrderHistoryScreen extends StatefulWidget {
 
 class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
   late Future<List<OrderModel>> _ordersFuture;
+  final String _userId = 'user_${DateTime.now().millisecondsSinceEpoch}';
 
   @override
   void initState() {
     super.initState();
-    _ordersFuture = OrderService.getMyOrders();
+    _ordersFuture = OrderService.getMyOrders(_userId);
   }
 
   Color _statusColor(String status) {
@@ -34,7 +35,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
 
   Future<void> _refresh() async {
     setState(() {
-      _ordersFuture = OrderService.getMyOrders();
+      _ordersFuture = OrderService.getMyOrders(_userId);
     });
   }
 
