@@ -1,6 +1,6 @@
-import 'package:cafeteria/features/auth/presentation/menu/data/presentation/screens/menu_screen.dart';
 import 'package:flutter/material.dart';
-import '/core/constants/app_colors.dart';
+import 'package:cafeteria/core/constants/app_colors.dart';
+import 'package:cafeteria/features/auth/presentation/screens/user_menu_screen.dart';
 
 class CanteenSelectScreen extends StatelessWidget {
   const CanteenSelectScreen({super.key});
@@ -13,6 +13,10 @@ class CanteenSelectScreen extends StatelessWidget {
     ];
 
     return Scaffold(
+      appBar: AppBar(
+        title: const Text('Select Canteen'),
+        backgroundColor: AppColors.primary,
+      ),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -33,8 +37,10 @@ class CanteenSelectScreen extends StatelessWidget {
                     padding: const EdgeInsets.all(20),
                   ),
                   onPressed: () async {
-                    Navigator.of(context).pushReplacement(
-                      MaterialPageRoute(builder: (_) => const MenuScreen()),
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => UserMenuScreen(canteenName: c['name']),
+                      ),
                     );
                   },
                   child: Text(

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../core/utils/helpers.dart';
 import '../../../../core/widgets/custom_button.dart';
-import 'package:cafeteria/features/auth/presentation/canteen_selection/presentation/canteen_select_screen.dart';
+import 'package:cafeteria/features/auth/presentation/screens/home_page.dart';
 
 class AuthForm extends StatefulWidget {
   final bool isLogin;
@@ -22,11 +22,11 @@ class _AuthFormState extends State<AuthForm> {
     setState(() => _isLoading = true);
     try {
       // TODO: Implement authentication logic
-      // For now, just navigate to canteen selection
+      // For now, just navigate to home page
       if (mounted) {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const CanteenSelectScreen()),
-        );
+        Navigator.of(
+          context,
+        ).pushReplacement(MaterialPageRoute(builder: (_) => const HomePage()));
       }
     } catch (e) {
       showSnackBar(context, e.toString());
