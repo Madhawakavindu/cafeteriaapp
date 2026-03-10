@@ -1,7 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:cafeteria/models/feedback_model.dart';
-import 'package:cafeteria/models/order_model.dart';
-import 'package:cafeteria/services/admin_service.dart';
 
 class AdminDashboardScreen extends StatefulWidget {
   const AdminDashboardScreen({super.key});
@@ -12,33 +9,11 @@ class AdminDashboardScreen extends StatefulWidget {
 
 class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
   int _selectedTabIndex = 0;
-  List<FeedbackModel> _allFeedback = [];
-  List<OrderModel> _allOrders = [];
-  Map<String, dynamic> _feedbackStats = {};
-  Map<String, dynamic> _orderStats = {};
-  bool _isLoading = true;
+  final List<dynamic> _allOrders = [];
 
   @override
   void initState() {
     super.initState();
-    _loadData();
-  }
-
-  Future<void> _loadData() async {
-    setState(() => _isLoading = true);
-
-    final feedback = await AdminService.getAllFeedback();
-    final orders = await AdminService.getAllOrders();
-    final feedbackStats = await AdminService.getFeedbackStats();
-    final orderStats = await AdminService.getOrderStats();
-
-    setState(() {
-      _allFeedback = feedback;
-      _allOrders = orders;
-      _feedbackStats = feedbackStats;
-      _orderStats = orderStats;
-      _isLoading = false;
-    });
   }
 
   @override
@@ -49,20 +24,14 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
         elevation: 0,
         backgroundColor: const Color(0xFF6366F1),
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-              child: Column(
-                children: [
-                  _buildStatsSection(),
-                  const Divider(height: 24),
-                  _buildTabSection(),
-                ],
-              ),
-            ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _loadData,
-        child: const Icon(Icons.refresh),
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            _buildStatsSection(),
+            const Divider(height: 24),
+            _buildTabSection(),
+          ],
+        ),
       ),
     );
   }
@@ -83,7 +52,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               Expanded(
                 child: _buildStatCard(
                   'Total Feedback',
-                  _feedbackStats['totalFeedback']?.toString() ?? '0',
+                  '--',
                   Icons.feedback,
                   Colors.blue,
                 ),
@@ -92,7 +61,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               Expanded(
                 child: _buildStatCard(
                   'Avg Rating',
-                  (_feedbackStats['averageRating'] ?? 0.0).toStringAsFixed(1),
+                  '--',
                   Icons.star,
                   Colors.amber,
                 ),
@@ -105,7 +74,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               Expanded(
                 child: _buildStatCard(
                   'Total Orders',
-                  _orderStats['totalOrders']?.toString() ?? '0',
+                  '--',
                   Icons.shopping_cart,
                   Colors.green,
                 ),
@@ -114,7 +83,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               Expanded(
                 child: _buildStatCard(
                   'Order Types',
-                  _orderStats['mealTypeDistribution']?.length.toString() ?? '0',
+                  '--',
                   Icons.category,
                   Colors.purple,
                 ),
@@ -135,9 +104,9 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.3)),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -200,69 +169,13 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
   }
 
   Widget _buildFeedbackList() {
-    if (_allFeedback.isEmpty) {
-      return Padding(
-        padding: const EdgeInsets.all(16),
-        child: Center(
-          child: Text(
-            'No feedback yet',
-            style: TextStyle(color: Colors.grey[600]),
-          ),
-        ),
-      );
-    }
-
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: ListView.builder(
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        itemCount: _allFeedback.length,
-        itemBuilder: (context, index) {
-          final feedback = _allFeedback[index];
-          return Card(
-            margin: const EdgeInsets.only(bottom: 12),
-            child: Padding(
-              padding: const EdgeInsets.all(12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        feedback.canteenId,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                        ),
-                      ),
-                      Row(
-                        children: List.generate(
-                          5,
-                          (i) => Icon(
-                            Icons.star,
-                            size: 16,
-                            color: i < feedback.rating
-                                ? Colors.amber
-                                : Colors.grey[300],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Text(feedback.comment, style: const TextStyle(fontSize: 14)),
-                  const SizedBox(height: 8),
-                  Text(
-                    feedback.timestamp.toString().split('.')[0],
-                    style: TextStyle(color: Colors.grey[600], fontSize: 12),
-                  ),
-                ],
-              ),
-            ),
-          );
-        },
+      padding: const EdgeInsets.all(16),
+      child: Center(
+        child: Text(
+          'No feedback yet',
+          style: TextStyle(color: Colors.grey[600]),
+        ),
       ),
     );
   }
@@ -325,7 +238,9 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                           vertical: 4,
                         ),
                         decoration: BoxDecoration(
-                          color: _getStatusColor(order.status).withOpacity(0.1),
+                          color: _getStatusColor(
+                            order.status,
+                          ).withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(4),
                         ),
                         child: Text(

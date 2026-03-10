@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:cafeteria/core/constants/app_colors.dart';
-import 'package:cafeteria/services/feedback_service.dart';
-import 'package:cafeteria/models/feedback_model.dart';
 import 'package:cafeteria/core/widgets/custom_button.dart';
 
 class FeedbackScreen extends StatefulWidget {
@@ -16,12 +14,10 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
   double _rating = 0;
   String _selectedCanteen = 'Canteen1';
   String _userId = 'user_${DateTime.now().millisecondsSinceEpoch}';
-  Future<List<FeedbackModel>>? _feedbackFuture;
 
   @override
   void initState() {
     super.initState();
-    _feedbackFuture = FeedbackService.getFeedbackForCanteen(_selectedCanteen);
   }
 
   @override
@@ -48,9 +44,6 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
                 if (val != null) {
                   setState(() {
                     _selectedCanteen = val;
-                    _feedbackFuture = FeedbackService.getFeedbackForCanteen(
-                      _selectedCanteen,
-                    );
                   });
                 }
               },
@@ -85,54 +78,20 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
             CustomButton(
               text: 'Submit',
               onPressed: () {
-                FeedbackService.submitFeedback(
-                  canteenId: _selectedCanteen,
-                  comment: _controller.text,
-                  rating: _rating.toInt(),
-                  userId: _userId,
-                ).then((_) {
-                  setState(() {
-                    _feedbackFuture = FeedbackService.getFeedbackForCanteen(
-                      _selectedCanteen,
-                    );
-                  });
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Feedback submitted')),
-                  );
-                });
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Feedback submitted')),
+                );
               },
             ),
             const SizedBox(height: 24),
             const Text('Recent feedback'),
             const SizedBox(height: 8),
             Expanded(
-              child: FutureBuilder<List<FeedbackModel>>(
-                future: _feedbackFuture,
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
-                  final items = snapshot.data ?? [];
-                  if (items.isEmpty) {
-                    return const Center(child: Text('No feedback yet'));
-                  }
-                  return ListView.separated(
-                    itemCount: items.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 8),
-                    itemBuilder: (context, index) {
-                      final f = items[index];
-                      return Card(
-                        child: ListTile(
-                          title: Text('Rating: ${f.rating}/5'),
-                          subtitle: Text(f.comment),
-                          trailing: Text(
-                            '${f.timestamp.hour}:${f.timestamp.minute.toString().padLeft(2, '0')}',
-                          ),
-                        ),
-                      );
-                    },
-                  );
-                },
+              child: Center(
+                child: Text(
+                  'No feedback yet',
+                  style: TextStyle(color: Colors.grey[600]),
+                ),
               ),
             ),
           ],

@@ -3,7 +3,6 @@ import '../../../../core/utils/helpers.dart';
 import '../../../../core/widgets/custom_button.dart';
 import 'package:cafeteria/features/auth/presentation/screens/home_page.dart';
 import 'package:cafeteria/features/admin/presentation/screens/admin_dashboard_screen.dart';
-import 'package:cafeteria/services/user_service.dart';
 
 class AuthForm extends StatefulWidget {
   final bool isLogin;
@@ -25,31 +24,14 @@ class _AuthFormState extends State<AuthForm> {
     }
 
     setState(() => _isLoading = true);
-    try {
-      final user = await UserService.login(
-        email: _emailController.text,
-        password: _passController.text,
-      );
-
-      if (mounted) {
-        // Route based on user role
-        if (user.role == 'admin') {
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (_) => const AdminDashboardScreen()),
-          );
-        } else {
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (_) => const HomePage()),
-          );
-        }
-      }
-    } catch (e) {
-      if (mounted) {
-        showSnackBar(context, e.toString());
-      }
-    }
+    // Backend login removed
+    await Future.delayed(const Duration(milliseconds: 300));
 
     if (mounted) {
+      // Default navigation to home page
+      Navigator.of(
+        context,
+      ).pushReplacement(MaterialPageRoute(builder: (_) => const HomePage()));
       setState(() => _isLoading = false);
     }
   }
