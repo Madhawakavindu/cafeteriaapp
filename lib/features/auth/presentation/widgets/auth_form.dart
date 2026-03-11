@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import '../../../../core/utils/helpers.dart';
 import '../../../../core/widgets/custom_button.dart';
 import 'package:cafeteria/features/auth/presentation/screens/home_page.dart';
-import 'package:cafeteria/features/admin/presentation/screens/admin_dashboard_screen.dart';
+import 'package:cafeteria/features/auth/presentation/screens/owner_dashboard_screen.dart';
+import 'package:cafeteria/features/auth/core/services/auth_service.dart';
 
 class AuthForm extends StatefulWidget {
   final bool isLogin;
@@ -15,6 +16,7 @@ class AuthForm extends StatefulWidget {
 class _AuthFormState extends State<AuthForm> {
   final _emailController = TextEditingController();
   final _passController = TextEditingController();
+  final _authService = AuthService();
   bool _isLoading = false;
 
   Future<void> _submit() async {
@@ -24,15 +26,27 @@ class _AuthFormState extends State<AuthForm> {
     }
 
     setState(() => _isLoading = true);
-    // Backend login removed
-    await Future.delayed(const Duration(milliseconds: 300));
+    try {
+      await _authService.login(_emailController.text, _passController.text);
 
-    if (mounted) {
-      // Default navigation to home page
-      Navigator.of(
-        context,
-      ).pushReplacement(MaterialPageRoute(builder: (_) => const HomePage()));
-      setState(() => _isLoading = false);
+      if (mounted) {
+        // Navigate based on user role
+        if (_authService.isOwner) {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (_) => const OwnerDashboardScreen()),
+          );
+        } else {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (_) => const HomePage()),
+          );
+        }
+        setState(() => _isLoading = false);
+      }
+    } catch (e) {
+      if (mounted) {
+        showSnackBar(context, 'Login failed: ${e.toString()}');
+        setState(() => _isLoading = false);
+      }
     }
   }
 
@@ -53,9 +67,18 @@ class _AuthFormState extends State<AuthForm> {
         const SizedBox(height: 12),
         Align(
           alignment: Alignment.centerRight,
-          child: Text(
-            'Demo Admin: admin@cafeteria.com / admin123',
-            style: TextStyle(fontSize: 10, color: Colors.grey[600]),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                'Demo Owner: owner@cafeteria.com / owner123',
+                style: TextStyle(fontSize: 10, color: Colors.grey[600]),
+              ),
+              Text(
+                'Demo User: user@example.com / password',
+                style: TextStyle(fontSize: 10, color: Colors.grey[600]),
+              ),
+            ],
           ),
         ),
         const SizedBox(height: 30),

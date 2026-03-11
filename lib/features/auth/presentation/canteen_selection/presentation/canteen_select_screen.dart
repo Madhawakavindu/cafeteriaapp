@@ -8,8 +8,16 @@ class CanteenSelectScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final List<Map<String, dynamic>> canteens = [
-      {'name': 'Canteen 1', 'color': AppColors.canteen1, 'id': 'Canteen1'},
-      {'name': 'Canteen 2', 'color': AppColors.canteen2, 'id': 'Canteen2'},
+      {
+        'name': 'Main Cafeteria',
+        'color': AppColors.canteen1,
+        'id': 'canteen_1',
+      },
+      {
+        'name': 'Secondary Cafeteria',
+        'color': AppColors.canteen2,
+        'id': 'canteen_2',
+      },
     ];
 
     return Scaffold(
@@ -39,7 +47,10 @@ class CanteenSelectScreen extends StatelessWidget {
                   onPressed: () async {
                     Navigator.of(context).push(
                       MaterialPageRoute(
-                        builder: (_) => UserMenuScreen(canteenName: c['name']),
+                        builder: (_) => UserMenuScreen(
+                          canteenName: c['name'],
+                          canteenId: c['id'],
+                        ),
                       ),
                     );
                   },
