@@ -9,24 +9,9 @@ class OrderHistoryScreen extends StatefulWidget {
 }
 
 class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
-  final String _userId = 'user_${DateTime.now().millisecondsSinceEpoch}';
-
   @override
   void initState() {
     super.initState();
-  }
-
-  Color _statusColor(String status) {
-    switch (status.toLowerCase()) {
-      case 'completed':
-        return Colors.green;
-      case 'preparing':
-        return Colors.orange;
-      case 'cancelled':
-        return Colors.red;
-      default:
-        return Colors.grey;
-    }
   }
 
   Future<void> _refresh() async {

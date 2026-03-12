@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'core/constants/app_colors.dart';
+import 'core/services/firebase_init.dart';
 import 'features/auth/presentation/screens/login_screen.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await FirebaseInitialization.initialize();
   runApp(const CampusCanteenApp());
 }
 

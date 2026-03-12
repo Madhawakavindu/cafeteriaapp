@@ -13,7 +13,6 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
   final _controller = TextEditingController();
   double _rating = 0;
   String _selectedCanteen = 'Canteen1';
-  String _userId = 'user_${DateTime.now().millisecondsSinceEpoch}';
 
   @override
   void initState() {

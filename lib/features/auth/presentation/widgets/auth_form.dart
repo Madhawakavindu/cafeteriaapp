@@ -64,23 +64,6 @@ class _AuthFormState extends State<AuthForm> {
           controller: _passController,
           obscureText: true,
         ),
-        const SizedBox(height: 12),
-        Align(
-          alignment: Alignment.centerRight,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                'Demo Owner: owner@cafeteria.com / owner123',
-                style: TextStyle(fontSize: 10, color: Colors.grey[600]),
-              ),
-              Text(
-                'Demo User: user@example.com / password',
-                style: TextStyle(fontSize: 10, color: Colors.grey[600]),
-              ),
-            ],
-          ),
-        ),
         const SizedBox(height: 30),
         _isLoading
             ? const CircularProgressIndicator()
