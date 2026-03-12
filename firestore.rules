@@ -1,0 +1,104 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isSelf(userId) {
+      return signedIn() && request.auth.uid == userId;
+    }
+
+    function userDoc(userId) {
+      return get(/databases/$(database)/documents/users/$(userId));
+    }
+
+    function isOwner() {
+      return signedIn() && userDoc(request.auth.uid).data.role == 'owner';
+    }
+
+    function ownerCanteenId() {
+      return userDoc(request.auth.uid).data.canteenId;
+    }
+
+    // Users: public signup is always normal user only.
+    match /users/{userId} {
+      allow read: if isSelf(userId);
+
+      allow create: if isSelf(userId)
+        && request.resource.data.role == 'user'
+        && request.resource.data.canteenId == null
+        && request.resource.data.isActive == true;
+
+      allow update: if isSelf(userId)
+        && request.resource.data.role == resource.data.role
+        && request.resource.data.canteenId == resource.data.canteenId;
+
+      allow delete: if false;
+    }
+
+    // Canteens are readable by all signed-in users.
+    match /canteens/{canteenId} {
+      allow read: if signedIn();
+
+      // Only owner of this canteen can update its details.
+      allow update: if isOwner() && resource.data.owner == request.auth.uid;
+
+      // Create/delete can be managed by backend/admin tooling only.
+      allow create, delete: if false;
+    }
+
+    // Menu items:
+    // Read by signed-in users, write only by owner of that canteen.
+    match /menuItems/{menuItemId} {
+      allow read: if signedIn();
+
+      allow create: if isOwner()
+        && request.resource.data.canteen == ownerCanteenId();
+
+      allow update: if isOwner()
+        && resource.data.canteen == ownerCanteenId()
+        && request.resource.data.canteen == resource.data.canteen;
+
+      allow delete: if isOwner() && resource.data.canteen == ownerCanteenId();
+    }
+
+    // Orders:
+    // User can create/read own orders.
+    // Owner can read/update orders for their own canteen.
+    match /orders/{orderId} {
+      allow create: if signedIn()
+        && request.resource.data.user == request.auth.uid;
+
+      allow read: if signedIn() && (
+        resource.data.user == request.auth.uid
+        || (isOwner() && resource.data.canteen == ownerCanteenId())
+      );
+
+      allow update: if signedIn() && (
+        (resource.data.user == request.auth.uid
+          && request.resource.data.user == resource.data.user
+          && request.resource.data.canteen == resource.data.canteen)
+        || (isOwner()
+          && resource.data.canteen == ownerCanteenId()
+          && request.resource.data.canteen == resource.data.canteen)
+      );
+
+      allow delete: if false;
+    }
+
+    // Feedback:
+    // Any signed-in user can read feedback (visible to all users).
+    // Any signed-in user can create feedback for their own userId.
+    // No edits or deletes allowed.
+    match /feedback/{feedbackId} {
+      allow read: if signedIn();
+
+      allow create: if signedIn()
+        && request.resource.data.userId == request.auth.uid;
+
+      allow update, delete: if false;
+    }
+  }
+}

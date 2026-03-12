@@ -3,6 +3,7 @@ import 'package:cafeteria/core/constants/app_colors.dart';
 import 'package:cafeteria/features/auth/core/services/auth_service.dart';
 import 'package:cafeteria/features/auth/presentation/screens/admin_menu_screen.dart';
 import 'package:cafeteria/features/auth/presentation/screens/login_screen.dart';
+import 'package:cafeteria/features/auth/presentation/screens/owner_feedback_screen.dart';
 
 class OwnerDashboardScreen extends StatefulWidget {
   const OwnerDashboardScreen({super.key});
@@ -126,12 +127,21 @@ class _OwnerDashboardScreenState extends State<OwnerDashboardScreen> {
               title: 'Manage Today Menu',
               subtitle: 'Add, edit, or delete menu items for today',
               onTap: () {
+                if (user?.canteenId == null || user!.canteenId!.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text(
+                        'No canteen assigned. Contact system admin.',
+                      ),
+                    ),
+                  );
+                  return;
+                }
+
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (_) => AdminMenuScreen(
-                      canteenId: user?.canteenId ?? 'canteen_1',
-                    ),
+                    builder: (_) => AdminMenuScreen(canteenId: user.canteenId!),
                   ),
                 );
               },
@@ -153,8 +163,24 @@ class _OwnerDashboardScreenState extends State<OwnerDashboardScreen> {
               title: 'Customer Feedback',
               subtitle: 'View feedback and ratings from customers',
               onTap: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Feedback section coming soon')),
+                if (user?.canteenId == null || user!.canteenId!.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text(
+                        'No canteen assigned. Contact system admin.',
+                      ),
+                    ),
+                  );
+                  return;
+                }
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => OwnerFeedbackScreen(
+                      canteenId: user.canteenId!,
+                      canteenName: user.canteenName ?? 'My Canteen',
+                    ),
+                  ),
                 );
               },
             ),

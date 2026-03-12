@@ -165,11 +165,24 @@ class FirestoreService {
         query = query.where('category', isEqualTo: category);
       }
 
-      final snapshot = await query.orderBy('category').orderBy('name').get();
+      final snapshot = await query.get();
 
-      return snapshot.docs
+      final results = snapshot.docs
           .map((doc) => {'id': doc.id, ...doc.data() as Map<String, dynamic>})
           .toList();
+
+      // Sort in memory to avoid needing a Firestore composite index
+      results.sort((a, b) {
+        final catA = (a['category'] ?? '').toString();
+        final catB = (b['category'] ?? '').toString();
+        final cmp = catA.compareTo(catB);
+        if (cmp != 0) return cmp;
+        return (a['name'] ?? '').toString().compareTo(
+          (b['name'] ?? '').toString(),
+        );
+      });
+
+      return results;
     } catch (e) {
       throw Exception('Failed to fetch menu: $e');
     }
@@ -357,6 +370,56 @@ class FirestoreService {
     return _firestore
         .collection(ordersCollection)
         .where('canteen', isEqualTo: canteenId)
+        .snapshots()
+        .map(
+          (snapshot) => snapshot.docs
+              .map((doc) => {'id': doc.id, ...doc.data()})
+              .toList(),
+        );
+  }
+
+  // ── Feedback Operations ─────────────────────────────────────────────────────
+  static const String feedbackCollection = 'feedback';
+
+  Future<void> createFeedback(Map<String, dynamic> data) async {
+    try {
+      await _firestore.collection(feedbackCollection).add({
+        ...data,
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+    } catch (e) {
+      throw Exception('Failed to submit feedback: $e');
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> getFeedbackForMenuItem(
+    String menuItemId,
+  ) async {
+    try {
+      final snapshot = await _firestore
+          .collection(feedbackCollection)
+          .where('menuItemId', isEqualTo: menuItemId)
+          .get();
+      final results = snapshot.docs
+          .map((doc) => {'id': doc.id, ...doc.data()})
+          .toList();
+      // Sort newest first in memory to avoid index requirement
+      results.sort((a, b) {
+        final ta = a['createdAt'];
+        final tb = b['createdAt'];
+        if (ta == null || tb == null) return 0;
+        return (tb as Timestamp).compareTo(ta as Timestamp);
+      });
+      return results;
+    } catch (e) {
+      throw Exception('Failed to fetch feedback: $e');
+    }
+  }
+
+  Stream<List<Map<String, dynamic>>> watchFeedbackForCanteen(String canteenId) {
+    return _firestore
+        .collection(feedbackCollection)
+        .where('canteenId', isEqualTo: canteenId)
         .snapshots()
         .map(
           (snapshot) => snapshot.docs

@@ -20,6 +20,7 @@ class _AddMenuItemScreenState extends State<AddMenuItemScreen> {
   late TextEditingController _vegetablesController;
 
   String _selectedMealType = 'Vegetarian';
+  String _selectedMealTime = 'Lunch';
   final List<String> _selectedVegetables = [];
 
   @override
@@ -66,6 +67,7 @@ class _AddMenuItemScreenState extends State<AddMenuItemScreen> {
         mainFood: _mainFoodController.text,
         vegetables: _selectedVegetables,
         mealType: _selectedMealType,
+        mealTime: _selectedMealTime,
         date: DateTime.now().toString().split(' ')[0],
       );
 
@@ -118,6 +120,73 @@ class _AddMenuItemScreenState extends State<AddMenuItemScreen> {
                   }
                   return null;
                 },
+              ),
+              const SizedBox(height: 20),
+
+              // Meal Time
+              const Text(
+                'Meal Time',
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(height: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.grey[300]!),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: DropdownButton<String>(
+                  isExpanded: true,
+                  underline: const SizedBox(),
+                  value: _selectedMealTime,
+                  onChanged: (String? newValue) {
+                    if (newValue != null) {
+                      setState(() {
+                        _selectedMealTime = newValue;
+                      });
+                    }
+                  },
+                  items: [
+                    DropdownMenuItem(
+                      value: 'Breakfast',
+                      child: Row(
+                        children: const [
+                          Icon(
+                            Icons.wb_sunny_outlined,
+                            color: Colors.orange,
+                            size: 18,
+                          ),
+                          SizedBox(width: 8),
+                          Text('Breakfast (Ude Aharaya)'),
+                        ],
+                      ),
+                    ),
+                    DropdownMenuItem(
+                      value: 'Lunch',
+                      child: Row(
+                        children: const [
+                          Icon(Icons.wb_sunny, color: Colors.amber, size: 18),
+                          SizedBox(width: 8),
+                          Text('Lunch (Dawal Aharaya)'),
+                        ],
+                      ),
+                    ),
+                    DropdownMenuItem(
+                      value: 'Dinner',
+                      child: Row(
+                        children: const [
+                          Icon(
+                            Icons.nights_stay,
+                            color: Colors.indigo,
+                            size: 18,
+                          ),
+                          SizedBox(width: 8),
+                          Text('Dinner (Rathri Aharaya)'),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
               const SizedBox(height: 20),
 

@@ -2,7 +2,8 @@ class MenuItem {
   final String id;
   final String mainFood;
   final List<String> vegetables;
-  final String mealType;
+  final String mealType; // Vegetarian / Non-Vegetarian
+  final String mealTime; // Breakfast / Lunch / Dinner
   final String date;
 
   MenuItem({
@@ -10,6 +11,7 @@ class MenuItem {
     required this.mainFood,
     required this.vegetables,
     required this.mealType,
+    this.mealTime = 'Lunch',
     required this.date,
   });
 
@@ -18,6 +20,7 @@ class MenuItem {
     String? mainFood,
     List<String>? vegetables,
     String? mealType,
+    String? mealTime,
     String? date,
   }) {
     return MenuItem(
@@ -25,6 +28,7 @@ class MenuItem {
       mainFood: mainFood ?? this.mainFood,
       vegetables: vegetables ?? this.vegetables,
       mealType: mealType ?? this.mealType,
+      mealTime: mealTime ?? this.mealTime,
       date: date ?? this.date,
     );
   }

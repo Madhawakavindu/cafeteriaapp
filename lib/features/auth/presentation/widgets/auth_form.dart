@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../core/utils/helpers.dart';
 import '../../../../core/widgets/custom_button.dart';
+import 'package:cafeteria/features/auth/presentation/canteen_selection/presentation/canteen_select_screen.dart';
 import 'package:cafeteria/features/auth/presentation/screens/home_page.dart';
 import 'package:cafeteria/features/auth/presentation/screens/owner_dashboard_screen.dart';
 import 'package:cafeteria/features/auth/core/services/auth_service.dart';
@@ -14,24 +15,43 @@ class AuthForm extends StatefulWidget {
 }
 
 class _AuthFormState extends State<AuthForm> {
+  final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passController = TextEditingController();
   final _authService = AuthService();
   bool _isLoading = false;
 
   Future<void> _submit() async {
-    if (_emailController.text.isEmpty || _passController.text.isEmpty) {
+    final isRegister = !widget.isLogin;
+    if (_emailController.text.isEmpty ||
+        _passController.text.isEmpty ||
+        (isRegister && _nameController.text.isEmpty)) {
       showSnackBar(context, 'Please fill all fields');
       return;
     }
 
     setState(() => _isLoading = true);
     try {
-      await _authService.login(_emailController.text, _passController.text);
+      if (widget.isLogin) {
+        await _authService.login(
+          _emailController.text.trim(),
+          _passController.text,
+        );
+      } else {
+        await _authService.register(
+          _emailController.text.trim(),
+          _passController.text,
+          _nameController.text.trim(),
+          role: 'user',
+        );
+      }
 
       if (mounted) {
-        // Navigate based on user role
-        if (_authService.isOwner) {
+        if (!widget.isLogin) {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (_) => const CanteenSelectScreen()),
+          );
+        } else if (_authService.isOwner) {
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(builder: (_) => const OwnerDashboardScreen()),
           );
@@ -44,7 +64,8 @@ class _AuthFormState extends State<AuthForm> {
       }
     } catch (e) {
       if (mounted) {
-        showSnackBar(context, 'Login failed: ${e.toString()}');
+        final message = e.toString().replaceFirst('Exception: ', '');
+        showSnackBar(context, message);
         setState(() => _isLoading = false);
       }
     }
@@ -54,6 +75,12 @@ class _AuthFormState extends State<AuthForm> {
   Widget build(BuildContext context) {
     return Column(
       children: [
+        if (!widget.isLogin)
+          TextField(
+            decoration: const InputDecoration(labelText: 'Name'),
+            controller: _nameController,
+          ),
+        if (!widget.isLogin) const SizedBox(height: 12),
         TextField(
           decoration: const InputDecoration(labelText: 'Email'),
           controller: _emailController,
@@ -77,6 +104,7 @@ class _AuthFormState extends State<AuthForm> {
 
   @override
   void dispose() {
+    _nameController.dispose();
     _emailController.dispose();
     _passController.dispose();
     super.dispose();

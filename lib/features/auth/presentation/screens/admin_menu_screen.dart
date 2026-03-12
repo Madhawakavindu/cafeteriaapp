@@ -17,6 +17,7 @@ class _AdminMenuScreenState extends State<AdminMenuScreen> {
   final _repository = MenuRepository();
   List<MenuItem> _menuItems = [];
   bool _isLoading = false;
+  String? _errorMessage;
 
   @override
   void initState() {
@@ -25,11 +26,16 @@ class _AdminMenuScreenState extends State<AdminMenuScreen> {
   }
 
   Future<void> _loadMenuItems() async {
-    setState(() => _isLoading = true);
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
     try {
       final today = DateTime.now().toString().split(' ')[0];
       final items = await _repository.getMenuForDate(widget.canteenId, today);
       setState(() => _menuItems = items);
+    } catch (e) {
+      setState(() => _errorMessage = 'Failed to load menu: $e');
     } finally {
       setState(() => _isLoading = false);
     }
@@ -66,6 +72,26 @@ class _AdminMenuScreenState extends State<AdminMenuScreen> {
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
+          : _errorMessage != null
+          ? Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.error_outline, size: 64, color: Colors.red[300]),
+                  const SizedBox(height: 16),
+                  Text(
+                    _errorMessage!,
+                    style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: _loadMenuItems,
+                    child: const Text('Retry'),
+                  ),
+                ],
+              ),
+            )
           : _menuItems.isEmpty
           ? Center(
               child: Column(

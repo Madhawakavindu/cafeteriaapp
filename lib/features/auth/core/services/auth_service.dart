@@ -9,6 +9,32 @@ class AuthService {
   final FirestoreService _firestoreService = FirestoreService();
   user_model.User? _currentUser;
 
+  static String _authErrorMessage(firebase_auth.FirebaseAuthException error) {
+    switch (error.code) {
+      case 'invalid-email':
+        return 'The email address is not valid.';
+      case 'user-disabled':
+        return 'This account has been disabled.';
+      case 'user-not-found':
+        return 'No account was found for this email.';
+      case 'wrong-password':
+      case 'invalid-credential':
+        return 'Incorrect email or password.';
+      case 'email-already-in-use':
+        return 'An account already exists with this email.';
+      case 'weak-password':
+        return 'Password is too weak. Use at least 6 characters.';
+      case 'too-many-requests':
+        return 'Too many attempts. Please try again later.';
+      case 'network-request-failed':
+        return 'Network error. Check your internet connection.';
+      case 'operation-not-allowed':
+        return 'Email and password sign-in is not enabled in Firebase.';
+      default:
+        return error.message ?? 'Authentication failed. Please try again.';
+    }
+  }
+
   factory AuthService() {
     return _instance;
   }
@@ -27,6 +53,7 @@ class AuthService {
     String name, {
     String role = 'user',
     String? canteenId,
+    String? canteenName,
   }) async {
     try {
       // Create Firebase user
@@ -43,6 +70,7 @@ class AuthService {
         'name': name,
         'role': role,
         'canteenId': role == 'owner' ? canteenId : null,
+        'canteenName': role == 'owner' ? canteenName : null,
         'isActive': true,
       });
 
@@ -53,10 +81,11 @@ class AuthService {
         name: name,
         role: role,
         canteenId: role == 'owner' ? canteenId : null,
+        canteenName: role == 'owner' ? canteenName : null,
       );
     } on firebase_auth.FirebaseAuthException catch (e) {
       _currentUser = null;
-      throw Exception('Registration failed: ${e.message}');
+      throw Exception(_authErrorMessage(e));
     } catch (e) {
       _currentUser = null;
       throw Exception('Registration failed: $e');
@@ -90,7 +119,7 @@ class AuthService {
       }
     } on firebase_auth.FirebaseAuthException catch (e) {
       _currentUser = null;
-      throw Exception('Login failed: ${e.message}');
+      throw Exception(_authErrorMessage(e));
     } catch (e) {
       _currentUser = null;
       throw Exception('Login failed: $e');
@@ -138,7 +167,7 @@ class AuthService {
     try {
       await _firebaseAuth.currentUser?.updatePassword(newPassword);
     } on firebase_auth.FirebaseAuthException catch (e) {
-      throw Exception('Password change failed: ${e.message}');
+      throw Exception(_authErrorMessage(e));
     } catch (e) {
       throw Exception('Password change failed: $e');
     }
@@ -148,7 +177,7 @@ class AuthService {
     try {
       await _firebaseAuth.sendPasswordResetEmail(email: email);
     } on firebase_auth.FirebaseAuthException catch (e) {
-      throw Exception('Password reset failed: ${e.message}');
+      throw Exception(_authErrorMessage(e));
     } catch (e) {
       throw Exception('Password reset failed: $e');
     }
