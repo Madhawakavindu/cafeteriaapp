@@ -21,7 +21,30 @@ class _AddMenuItemScreenState extends State<AddMenuItemScreen> {
 
   String _selectedMealType = 'Vegetarian';
   String _selectedMealTime = 'Lunch';
+  DateTime _selectedDate = DateTime.now();
   final List<String> _selectedVegetables = [];
+
+  String _formatDate(DateTime date) {
+    final y = date.year.toString().padLeft(4, '0');
+    final m = date.month.toString().padLeft(2, '0');
+    final d = date.day.toString().padLeft(2, '0');
+    return '$y-$m-$d';
+  }
+
+  Future<void> _pickDate() async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _selectedDate,
+      firstDate: DateTime.now().subtract(const Duration(days: 30)),
+      lastDate: DateTime.now().add(const Duration(days: 365)),
+    );
+
+    if (picked != null) {
+      setState(() {
+        _selectedDate = picked;
+      });
+    }
+  }
 
   @override
   void initState() {
@@ -68,7 +91,7 @@ class _AddMenuItemScreenState extends State<AddMenuItemScreen> {
         vegetables: _selectedVegetables,
         mealType: _selectedMealType,
         mealTime: _selectedMealTime,
-        date: DateTime.now().toString().split(' ')[0],
+        date: _formatDate(_selectedDate),
       );
 
       await _repository.addMenuItem(widget.canteenId, menuItem);
@@ -221,6 +244,41 @@ class _AddMenuItemScreenState extends State<AddMenuItemScreen> {
                         );
                       })
                       .toList(),
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              // Menu Date
+              const Text(
+                'Menu Date',
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(height: 8),
+              InkWell(
+                onTap: _pickDate,
+                borderRadius: BorderRadius.circular(8),
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 14,
+                  ),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.grey[300]!),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.calendar_today_outlined, size: 18),
+                      const SizedBox(width: 10),
+                      Text(
+                        _formatDate(_selectedDate),
+                        style: const TextStyle(fontSize: 14),
+                      ),
+                      const Spacer(),
+                      const Text('Select'),
+                    ],
+                  ),
                 ),
               ),
               const SizedBox(height: 20),

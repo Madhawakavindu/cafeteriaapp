@@ -1,9 +1,11 @@
 import 'package:cafeteria/features/auth/core/models/menu_item.dart';
 import 'package:cafeteria/core/services/menu_api_service.dart';
+import 'package:cafeteria/features/auth/core/services/auth_service.dart';
 
 class MenuRepository {
   static final MenuRepository _instance = MenuRepository._internal();
   final MenuApiService _menuApiService = MenuApiService();
+  final AuthService _authService = AuthService();
 
   factory MenuRepository() {
     return _instance;
@@ -11,8 +13,25 @@ class MenuRepository {
 
   MenuRepository._internal();
 
+  void _ensureOwnerAccess(String canteenId) {
+    final user = _authService.currentUser;
+    if (user == null) {
+      throw Exception('Please login first.');
+    }
+    if (user.role != 'owner') {
+      throw Exception('Only canteen owners can manage daily menu.');
+    }
+    if ((user.canteenId ?? '').isEmpty) {
+      throw Exception('Owner account has no assigned canteen.');
+    }
+    if (user.canteenId != canteenId) {
+      throw Exception('You can only manage your assigned canteen menu.');
+    }
+  }
+
   // Add menu item for a specific canteen and date
   Future<void> addMenuItem(String canteenId, MenuItem item) async {
+    _ensureOwnerAccess(canteenId);
     await _menuApiService.createMenuItem(canteenId, {
       'name': item.mainFood,
       'description': item.vegetables.join(', '),
@@ -44,11 +63,31 @@ class MenuRepository {
 
   // Delete a menu item
   Future<void> deleteMenuItem(String canteenId, String itemId) async {
+    _ensureOwnerAccess(canteenId);
+
+    final item = await _menuApiService.getMenuItemById(itemId);
+    if (item == null || item.isEmpty) {
+      throw Exception('Menu item not found.');
+    }
+    if (item['canteen']?.toString() != canteenId) {
+      throw Exception('Cannot delete menu item from another canteen.');
+    }
+
     await _menuApiService.deleteMenuItem(itemId);
   }
 
   // Update a menu item
   Future<void> updateMenuItem(String canteenId, MenuItem item) async {
+    _ensureOwnerAccess(canteenId);
+
+    final existingItem = await _menuApiService.getMenuItemById(item.id);
+    if (existingItem == null || existingItem.isEmpty) {
+      throw Exception('Menu item not found.');
+    }
+    if (existingItem['canteen']?.toString() != canteenId) {
+      throw Exception('Cannot update menu item from another canteen.');
+    }
+
     await _menuApiService.updateMenuItem(item.id, {
       'name': item.mainFood,
       'description': item.vegetables.join(', '),

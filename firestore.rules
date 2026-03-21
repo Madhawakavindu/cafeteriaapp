@@ -18,22 +18,44 @@ service cloud.firestore {
       return signedIn() && userDoc(request.auth.uid).data.role == 'owner';
     }
 
+    function isAdmin() {
+      return signedIn() && userDoc(request.auth.uid).data.role == 'admin';
+    }
+
     function ownerCanteenId() {
       return userDoc(request.auth.uid).data.canteenId;
     }
 
     // Users: public signup is always normal user only.
     match /users/{userId} {
-      allow read: if isSelf(userId);
+      allow read: if isSelf(userId) || isAdmin();
 
       allow create: if isSelf(userId)
         && request.resource.data.role == 'user'
         && request.resource.data.canteenId == null
         && request.resource.data.isActive == true;
 
-      allow update: if isSelf(userId)
+      allow update: if (isSelf(userId)
         && request.resource.data.role == resource.data.role
-        && request.resource.data.canteenId == resource.data.canteenId;
+        && request.resource.data.canteenId == resource.data.canteenId)
+        || isAdmin();
+
+      allow delete: if false;
+    }
+
+    // Owner access requests:
+    // Users can create/read their own request, admins can read/review all requests.
+    match /ownerRequests/{requestId} {
+      allow create: if signedIn()
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.status == 'pending';
+
+      allow read: if signedIn() && (
+        resource.data.userId == request.auth.uid
+        || isAdmin()
+      );
+
+      allow update: if isAdmin();
 
       allow delete: if false;
     }

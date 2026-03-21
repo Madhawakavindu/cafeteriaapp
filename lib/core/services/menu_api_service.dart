@@ -5,6 +5,10 @@ class MenuApiService {
   final FirestoreService _firestoreService = FirestoreService();
   static const uuid = Uuid();
 
+  Stream<List<Map<String, dynamic>>> watchMenuByCanteen(String canteenId) {
+    return _firestoreService.watchMenuByCanteen(canteenId);
+  }
+
   Future<List<Map<String, dynamic>>> getMenuByCanteen(
     String canteenId, {
     String? category,

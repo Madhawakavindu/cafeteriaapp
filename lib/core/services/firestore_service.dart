@@ -15,6 +15,7 @@ class FirestoreService {
   static const String canteensCollection = 'canteens';
   static const String menuItemsCollection = 'menuItems';
   static const String ordersCollection = 'orders';
+  static const String ownerRequestsCollection = 'ownerRequests';
 
   // User Operations
   Future<void> createUser(String userId, Map<String, dynamic> userData) async {
@@ -49,6 +50,113 @@ class FirestoreService {
       });
     } catch (e) {
       throw Exception('Failed to update user: $e');
+    }
+  }
+
+  Future<void> createOwnerRequest(Map<String, dynamic> data) async {
+    try {
+      await _firestore.collection(ownerRequestsCollection).add({
+        ...data,
+        'status': 'pending',
+        'createdAt': FieldValue.serverTimestamp(),
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+    } catch (e) {
+      throw Exception('Failed to create owner request: $e');
+    }
+  }
+
+  Future<bool> hasPendingOwnerRequest(String userId) async {
+    try {
+      final snapshot = await _firestore
+          .collection(ownerRequestsCollection)
+          .where('userId', isEqualTo: userId)
+          .where('status', isEqualTo: 'pending')
+          .limit(1)
+          .get();
+
+      return snapshot.docs.isNotEmpty;
+    } catch (e) {
+      throw Exception('Failed to check owner request status: $e');
+    }
+  }
+
+  Future<Map<String, dynamic>?> getLatestOwnerRequest(String userId) async {
+    try {
+      final snapshot = await _firestore
+          .collection(ownerRequestsCollection)
+          .where('userId', isEqualTo: userId)
+          .orderBy('createdAt', descending: true)
+          .limit(1)
+          .get();
+
+      if (snapshot.docs.isEmpty) {
+        return null;
+      }
+
+      final doc = snapshot.docs.first;
+      return {'id': doc.id, ...doc.data()};
+    } catch (e) {
+      throw Exception('Failed to fetch latest owner request: $e');
+    }
+  }
+
+  Stream<List<Map<String, dynamic>>> watchPendingOwnerRequests() {
+    return _firestore
+        .collection(ownerRequestsCollection)
+        .where('status', isEqualTo: 'pending')
+        .orderBy('createdAt', descending: false)
+        .snapshots()
+        .map(
+          (snapshot) => snapshot.docs
+              .map((doc) => {'id': doc.id, ...doc.data()})
+              .toList(),
+        );
+  }
+
+  Future<void> reviewOwnerRequest({
+    required String requestId,
+    required String userId,
+    required String canteenId,
+    required String canteenName,
+    required String reviewerId,
+    required bool approve,
+  }) async {
+    try {
+      final requestRef = _firestore
+          .collection(ownerRequestsCollection)
+          .doc(requestId);
+      final userRef = _firestore.collection(usersCollection).doc(userId);
+
+      await _firestore.runTransaction((transaction) async {
+        final requestSnapshot = await transaction.get(requestRef);
+        if (!requestSnapshot.exists) {
+          throw Exception('Owner request no longer exists.');
+        }
+
+        final requestData = requestSnapshot.data();
+        if (requestData == null || requestData['status'] != 'pending') {
+          throw Exception('This request has already been reviewed.');
+        }
+
+        transaction.update(requestRef, {
+          'status': approve ? 'approved' : 'rejected',
+          'reviewedBy': reviewerId,
+          'reviewedAt': FieldValue.serverTimestamp(),
+          'updatedAt': FieldValue.serverTimestamp(),
+        });
+
+        if (approve) {
+          transaction.update(userRef, {
+            'role': 'owner',
+            'canteenId': canteenId,
+            'canteenName': canteenName,
+            'updatedAt': FieldValue.serverTimestamp(),
+          });
+        }
+      });
+    } catch (e) {
+      throw Exception('Failed to review owner request: $e');
     }
   }
 

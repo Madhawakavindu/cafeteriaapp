@@ -4,6 +4,7 @@ import '../../../../core/widgets/custom_button.dart';
 import 'package:cafeteria/features/auth/presentation/canteen_selection/presentation/canteen_select_screen.dart';
 import 'package:cafeteria/features/auth/presentation/screens/home_page.dart';
 import 'package:cafeteria/features/auth/presentation/screens/owner_dashboard_screen.dart';
+import 'package:cafeteria/features/admin/presentation/screens/admin_dashboard_screen.dart';
 import 'package:cafeteria/features/auth/core/services/auth_service.dart';
 
 class AuthForm extends StatefulWidget {
@@ -50,6 +51,10 @@ class _AuthFormState extends State<AuthForm> {
         if (!widget.isLogin) {
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(builder: (_) => const CanteenSelectScreen()),
+          );
+        } else if (_authService.isAdmin) {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (_) => const AdminDashboardScreen()),
           );
         } else if (_authService.isOwner) {
           Navigator.of(context).pushReplacement(

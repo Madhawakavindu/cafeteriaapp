@@ -47,6 +47,8 @@ class AuthService {
 
   bool get isOwner => _currentUser?.role == 'owner';
 
+  bool get isAdmin => _currentUser?.role == 'admin';
+
   Future<void> register(
     String email,
     String password,

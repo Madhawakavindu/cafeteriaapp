@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cafeteria/core/constants/app_colors.dart';
+import 'package:cafeteria/features/auth/core/services/auth_service.dart';
 import 'package:cafeteria/features/auth/core/models/menu_item.dart';
 import 'package:cafeteria/features/auth/presentation/menu/data/menu_repository.dart';
 import 'package:cafeteria/features/auth/presentation/screens/add_menu_item_screen.dart';
@@ -15,6 +16,7 @@ class AdminMenuScreen extends StatefulWidget {
 
 class _AdminMenuScreenState extends State<AdminMenuScreen> {
   final _repository = MenuRepository();
+  final _authService = AuthService();
   List<MenuItem> _menuItems = [];
   bool _isLoading = false;
   String? _errorMessage;
@@ -22,10 +24,38 @@ class _AdminMenuScreenState extends State<AdminMenuScreen> {
   @override
   void initState() {
     super.initState();
+    _guardAccess();
     _loadMenuItems();
   }
 
+  void _guardAccess() {
+    final user = _authService.currentUser;
+    if (user == null ||
+        user.role != 'owner' ||
+        user.canteenId != widget.canteenId) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Access denied. You can only manage your own canteen menu.',
+            ),
+          ),
+        );
+        Navigator.of(context).pop();
+      });
+    }
+  }
+
   Future<void> _loadMenuItems() async {
+    final user = _authService.currentUser;
+    if (user == null ||
+        user.role != 'owner' ||
+        user.canteenId != widget.canteenId) {
+      setState(() => _errorMessage = 'Access denied for this canteen.');
+      return;
+    }
+
     setState(() {
       _isLoading = true;
       _errorMessage = null;
