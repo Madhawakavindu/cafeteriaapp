@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/utils/helpers.dart';
 import '../../../../core/widgets/custom_button.dart';
-import 'package:cafeteria/features/auth/presentation/canteen_selection/presentation/canteen_select_screen.dart';
 import 'package:cafeteria/features/auth/presentation/screens/home_page.dart';
 import 'package:cafeteria/features/auth/presentation/screens/owner_dashboard_screen.dart';
 import 'package:cafeteria/features/admin/presentation/screens/admin_dashboard_screen.dart';
@@ -50,7 +49,7 @@ class _AuthFormState extends State<AuthForm> {
       if (mounted) {
         if (!widget.isLogin) {
           Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (_) => const CanteenSelectScreen()),
+            MaterialPageRoute(builder: (_) => const HomePage()),
           );
         } else if (_authService.isAdmin) {
           Navigator.of(context).pushReplacement(

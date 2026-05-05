@@ -71,11 +71,11 @@ class FirestoreService {
       final snapshot = await _firestore
           .collection(ownerRequestsCollection)
           .where('userId', isEqualTo: userId)
-          .where('status', isEqualTo: 'pending')
-          .limit(1)
           .get();
 
-      return snapshot.docs.isNotEmpty;
+      return snapshot.docs.any(
+        (doc) => (doc.data()['status'] ?? '').toString() == 'pending',
+      );
     } catch (e) {
       throw Exception('Failed to check owner request status: $e');
     }
@@ -86,15 +86,23 @@ class FirestoreService {
       final snapshot = await _firestore
           .collection(ownerRequestsCollection)
           .where('userId', isEqualTo: userId)
-          .orderBy('createdAt', descending: true)
-          .limit(1)
           .get();
 
       if (snapshot.docs.isEmpty) {
         return null;
       }
 
-      final doc = snapshot.docs.first;
+      final docs = [...snapshot.docs]
+        ..sort((a, b) {
+          final ta = a.data()['createdAt'];
+          final tb = b.data()['createdAt'];
+          if (ta == null && tb == null) return 0;
+          if (ta == null) return 1;
+          if (tb == null) return -1;
+          return (tb as Timestamp).compareTo(ta as Timestamp);
+        });
+
+      final doc = docs.first;
       return {'id': doc.id, ...doc.data()};
     } catch (e) {
       throw Exception('Failed to fetch latest owner request: $e');
@@ -105,13 +113,23 @@ class FirestoreService {
     return _firestore
         .collection(ownerRequestsCollection)
         .where('status', isEqualTo: 'pending')
-        .orderBy('createdAt', descending: false)
         .snapshots()
-        .map(
-          (snapshot) => snapshot.docs
+        .map((snapshot) {
+          final items = snapshot.docs
               .map((doc) => {'id': doc.id, ...doc.data()})
-              .toList(),
-        );
+              .toList();
+
+          items.sort((a, b) {
+            final ta = a['createdAt'];
+            final tb = b['createdAt'];
+            if (ta == null && tb == null) return 0;
+            if (ta == null) return 1;
+            if (tb == null) return -1;
+            return (ta as Timestamp).compareTo(tb as Timestamp);
+          });
+
+          return items;
+        });
   }
 
   Future<void> reviewOwnerRequest({
@@ -157,6 +175,31 @@ class FirestoreService {
       });
     } catch (e) {
       throw Exception('Failed to review owner request: $e');
+    }
+  }
+
+  Stream<List<Map<String, dynamic>>> watchOwners() {
+    return _firestore
+        .collection(usersCollection)
+        .where('role', isEqualTo: 'owner')
+        .snapshots()
+        .map(
+          (snapshot) => snapshot.docs
+              .map((doc) => {'id': doc.id, ...doc.data()})
+              .toList(),
+        );
+  }
+
+  Future<void> revokeOwnerRole(String userId) async {
+    try {
+      await _firestore.collection(usersCollection).doc(userId).update({
+        'role': 'user',
+        'canteenId': null,
+        'canteenName': null,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+    } catch (e) {
+      throw Exception('Failed to remove owner access: $e');
     }
   }
 

@@ -21,6 +21,12 @@ class LoginScreen extends StatelessWidget {
                 'Welcome Back!',
                 style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
               ),
+              const SizedBox(height: 10),
+              Text(
+                'Owners and admins also login here with the same email and password.',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 13, color: Colors.grey[600]),
+              ),
               const SizedBox(height: 30),
               AuthForm(isLogin: true),
               const SizedBox(height: 20),

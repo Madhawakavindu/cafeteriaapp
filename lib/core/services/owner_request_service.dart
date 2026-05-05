@@ -54,6 +54,10 @@ class OwnerRequestService {
     return _firestoreService.watchPendingOwnerRequests();
   }
 
+  Stream<List<Map<String, dynamic>>> watchCurrentOwners() {
+    return _firestoreService.watchOwners();
+  }
+
   Future<void> approveRequest({
     required String requestId,
     required String userId,
@@ -94,5 +98,14 @@ class OwnerRequestService {
       reviewerId: reviewer.uid,
       approve: false,
     );
+  }
+
+  Future<void> removeOwnerAccess(String userId) async {
+    final reviewer = _firebaseAuth.currentUser;
+    if (reviewer == null) {
+      throw Exception('Please login as admin.');
+    }
+
+    await _firestoreService.revokeOwnerRole(userId);
   }
 }
