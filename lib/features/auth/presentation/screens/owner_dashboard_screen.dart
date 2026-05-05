@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:cafeteria/core/constants/app_colors.dart';
+import 'package:cafeteria/core/services/firestore_service.dart';
 import 'package:cafeteria/features/auth/core/services/auth_service.dart';
 import 'package:cafeteria/features/auth/presentation/screens/admin_menu_screen.dart';
 import 'package:cafeteria/features/auth/presentation/screens/login_screen.dart';
 import 'package:cafeteria/features/auth/presentation/screens/owner_feedback_screen.dart';
+import 'package:cafeteria/features/auth/presentation/screens/owner_orders_screen.dart';
 
 class OwnerDashboardScreen extends StatefulWidget {
   const OwnerDashboardScreen({super.key});
@@ -13,6 +15,8 @@ class OwnerDashboardScreen extends StatefulWidget {
 }
 
 class _OwnerDashboardScreenState extends State<OwnerDashboardScreen> {
+  final FirestoreService _firestoreService = FirestoreService();
+
   @override
   Widget build(BuildContext context) {
     final authService = AuthService();
@@ -103,11 +107,20 @@ class _OwnerDashboardScreenState extends State<OwnerDashboardScreen> {
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: _StatCard(
-                    icon: Icons.shopping_cart,
-                    label: 'Today Orders',
-                    value: '0',
-                    color: Colors.green,
+                  child: StreamBuilder<List<Map<String, dynamic>>>(
+                    stream:
+                        (user?.canteenId == null || user!.canteenId!.isEmpty)
+                        ? null
+                        : _firestoreService.watchCanteenOrders(user.canteenId!),
+                    builder: (context, snapshot) {
+                      final totalOrders = (snapshot.data ?? []).length;
+                      return _StatCard(
+                        icon: Icons.shopping_cart,
+                        label: 'Incoming Orders',
+                        value: '$totalOrders',
+                        color: Colors.green,
+                      );
+                    },
                   ),
                 ),
               ],
@@ -148,12 +161,29 @@ class _OwnerDashboardScreenState extends State<OwnerDashboardScreen> {
             ),
             const SizedBox(height: 12),
             _ManagementCard(
-              icon: Icons.bar_chart,
-              title: 'View Reports',
-              subtitle: 'See sales and order statistics',
+              icon: Icons.receipt_long,
+              title: 'Incoming Orders',
+              subtitle: 'View and manage customer orders in real time',
               onTap: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Reports coming soon')),
+                if (user?.canteenId == null || user!.canteenId!.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text(
+                        'No canteen assigned. Contact system admin.',
+                      ),
+                    ),
+                  );
+                  return;
+                }
+
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => OwnerOrdersScreen(
+                      canteenId: user.canteenId!,
+                      canteenName: user.canteenName ?? 'My Canteen',
+                    ),
+                  ),
                 );
               },
             ),

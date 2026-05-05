@@ -23,6 +23,7 @@ class OrderApiService {
       };
 
       await _firestoreService.createOrder(orderId, orderData);
+
       return {'id': orderId, ...orderData};
     } catch (e) {
       throw Exception('Failed to create order: $e');
@@ -66,6 +67,14 @@ class OrderApiService {
       await _firestoreService.updateOrderPaymentStatus(id, paymentStatus);
     } catch (e) {
       throw Exception('Failed to update payment status: $e');
+    }
+  }
+
+  Future<void> markOrderReceived(String orderId) async {
+    try {
+      await _firestoreService.markOrderReceivedByUser(orderId);
+    } catch (e) {
+      throw Exception('Failed to mark order as received: $e');
     }
   }
 }

@@ -415,10 +415,28 @@ class FirestoreService {
       final snapshot = await _firestore
           .collection(ordersCollection)
           .where('user', isEqualTo: userId)
-          .orderBy('createdAt', descending: true)
           .get();
 
-      return snapshot.docs.map((doc) => {'id': doc.id, ...doc.data()}).toList();
+      final results = snapshot.docs
+          .map((doc) => {'id': doc.id, ...doc.data()})
+          .where(
+            (order) =>
+                (order['hiddenForUser'] as bool?) != true &&
+                (order['status']?.toString() ?? '') != 'received',
+          )
+          .toList();
+
+      // Sort newest first in memory to avoid requiring a composite index.
+      results.sort((a, b) {
+        final ta = a['createdAt'];
+        final tb = b['createdAt'];
+        if (ta is Timestamp && tb is Timestamp) {
+          return tb.compareTo(ta);
+        }
+        return 0;
+      });
+
+      return results;
     } catch (e) {
       throw Exception('Failed to fetch user orders: $e');
     }
@@ -470,6 +488,20 @@ class FirestoreService {
     }
   }
 
+  Future<void> markOrderReceivedByUser(String orderId) async {
+    try {
+      await _firestore.collection(ordersCollection).doc(orderId).update({
+        'status': 'received',
+        'receivedByUser': true,
+        'hiddenForUser': true,
+        'receivedAt': FieldValue.serverTimestamp(),
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+    } catch (e) {
+      throw Exception('Failed to mark order as received: $e');
+    }
+  }
+
   // Watch for real-time updates
   Stream<List<Map<String, dynamic>>> watchCanteens() {
     return _firestore
@@ -508,13 +540,29 @@ class FirestoreService {
     return _firestore
         .collection(ordersCollection)
         .where('user', isEqualTo: userId)
-        .orderBy('createdAt', descending: true)
         .snapshots()
-        .map(
-          (snapshot) => snapshot.docs
+        .map((snapshot) {
+          final results = snapshot.docs
               .map((doc) => {'id': doc.id, ...doc.data()})
-              .toList(),
-        );
+              .where(
+                (order) =>
+                    (order['hiddenForUser'] as bool?) != true &&
+                    (order['status']?.toString() ?? '') != 'received',
+              )
+              .toList();
+
+          // Sort newest first in memory to avoid requiring a composite index.
+          results.sort((a, b) {
+            final ta = a['createdAt'];
+            final tb = b['createdAt'];
+            if (ta is Timestamp && tb is Timestamp) {
+              return tb.compareTo(ta);
+            }
+            return 0;
+          });
+
+          return results;
+        });
   }
 
   Stream<List<Map<String, dynamic>>> watchCanteenOrders(String canteenId) {

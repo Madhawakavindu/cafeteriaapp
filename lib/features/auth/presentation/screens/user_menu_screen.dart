@@ -4,6 +4,7 @@ import 'package:cafeteria/features/auth/core/models/menu_item.dart';
 import 'package:cafeteria/features/auth/presentation/feedback/data/presentation/screens/leave_feedback_screen.dart';
 import 'package:cafeteria/features/auth/presentation/feedback/data/presentation/screens/feedback_list_screen.dart';
 import 'package:cafeteria/features/auth/presentation/menu/data/menu_repository.dart';
+import 'package:cafeteria/features/auth/presentation/order/presentation/order_screen.dart';
 
 class UserMenuScreen extends StatefulWidget {
   final String canteenName;
@@ -209,10 +210,22 @@ class _UserMenuScreenState extends State<UserMenuScreen> {
               children: [
                 Expanded(
                   child: ElevatedButton(
-                    onPressed: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
+                    onPressed: () async {
+                      final messenger = ScaffoldMessenger.of(context);
+                      final result = await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => OrderScreen(
+                            item: item,
+                            canteenId: widget.canteenId,
+                            canteenName: widget.canteenName,
+                          ),
+                        ),
+                      );
+                      if (!mounted || result == null) return;
+                      messenger.showSnackBar(
                         const SnackBar(
-                          content: Text('Added to cart (feature coming soon)'),
+                          content: Text('Order placed successfully'),
                         ),
                       );
                     },
@@ -221,7 +234,7 @@ class _UserMenuScreenState extends State<UserMenuScreen> {
                       padding: const EdgeInsets.symmetric(vertical: 8),
                     ),
                     child: const Text(
-                      'Add to Cart',
+                      'Order Now',
                       style: TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.w600,
