@@ -615,6 +615,89 @@ class FirestoreService {
     }
   }
 
+  Future<Map<String, List<Map<String, dynamic>>>>
+  getTodayRatedItemsByCategory() async {
+    try {
+      final now = DateTime.now();
+      final today =
+          '${now.year.toString().padLeft(4, '0')}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
+
+      final snapshot = await _firestore
+          .collection(feedbackCollection)
+          .where('date', isEqualTo: today)
+          .get();
+
+      if (snapshot.docs.isEmpty) {
+        return {};
+      }
+
+      // Group by menuItemId first to aggregate ratings
+      final Map<String, Map<String, dynamic>> itemsMap = {};
+      for (final doc in snapshot.docs) {
+        final data = doc.data();
+        final menuItemId = (data['menuItemId'] ?? '').toString();
+        if (menuItemId.isEmpty) continue;
+
+        final current =
+            itemsMap[menuItemId] ??
+            {
+              'menuItemId': menuItemId,
+              'menuItemName': (data['menuItemName'] ?? 'Unknown Item')
+                  .toString(),
+              'category': (data['category'] ?? 'Other').toString(),
+              'ratingCount': 0,
+              'ratingTotal': 0,
+            };
+
+        current['ratingCount'] = (current['ratingCount'] as int) + 1;
+        current['ratingTotal'] =
+            (current['ratingTotal'] as int) + ((data['rating'] as int?) ?? 0);
+        itemsMap[menuItemId] = current;
+      }
+
+      // Calculate averages and prepare final items
+      final List<Map<String, dynamic>> allItems = itemsMap.values.map((item) {
+        final ratingCount = item['ratingCount'] as int;
+        final ratingTotal = item['ratingTotal'] as int;
+        return {
+          ...item,
+          'avgRating': ratingCount == 0 ? 0.0 : (ratingTotal / ratingCount),
+        };
+      }).toList();
+
+      // Sort by rating count (descending)
+      allItems.sort((a, b) {
+        final countCompare = (b['ratingCount'] as int).compareTo(
+          a['ratingCount'] as int,
+        );
+        if (countCompare != 0) return countCompare;
+
+        final avgA = (a['avgRating'] as double);
+        final avgB = (b['avgRating'] as double);
+        final avgCompare = avgB.compareTo(avgA);
+        if (avgCompare != 0) return avgCompare;
+
+        return (a['menuItemName'] as String).compareTo(
+          b['menuItemName'] as String,
+        );
+      });
+
+      // Group by category
+      final Map<String, List<Map<String, dynamic>>> grouped = {};
+      for (final item in allItems) {
+        final category = (item['category'] ?? 'Other').toString();
+        if (!grouped.containsKey(category)) {
+          grouped[category] = [];
+        }
+        grouped[category]!.add(item);
+      }
+
+      return grouped;
+    } catch (e) {
+      throw Exception('Failed to fetch today rated items: $e');
+    }
+  }
+
   Stream<List<Map<String, dynamic>>> watchFeedbackForCanteen(String canteenId) {
     return _firestore
         .collection(feedbackCollection)
