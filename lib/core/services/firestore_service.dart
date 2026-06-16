@@ -1,5 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+//singleton instance
+//user operations
+//qwner requests
+//canteen & menu items
+//orders & feedback
 class FirestoreService {
   static final FirestoreService _instance = FirestoreService._internal();
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -109,6 +114,7 @@ class FirestoreService {
     }
   }
 
+  //live data labenna lassanawa
   Stream<List<Map<String, dynamic>>> watchPendingOwnerRequests() {
     return _firestore
         .collection(ownerRequestsCollection)
@@ -132,6 +138,7 @@ class FirestoreService {
         });
   }
 
+  //userge role eka wenas karanna
   Future<void> reviewOwnerRequest({
     required String requestId,
     required String userId,

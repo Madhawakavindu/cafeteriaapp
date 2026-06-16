@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:cafeteria/core/services/firestore_service.dart';
 import '../models/user.dart' as user_model;
 
+//user registration, login, logout, password reset, auth state monitoring, user role management, error handling, session mangmnt, user data loading,
 class AuthService {
   static final AuthService _instance = AuthService._internal();
   final firebase_auth.FirebaseAuth _firebaseAuth =

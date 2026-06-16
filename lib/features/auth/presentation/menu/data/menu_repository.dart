@@ -2,6 +2,9 @@ import 'package:cafeteria/features/auth/core/models/menu_item.dart';
 import 'package:cafeteria/core/services/menu_api_service.dart';
 import 'package:cafeteria/features/auth/core/services/auth_service.dart';
 
+//This code simply does the following:
+//It takes care of security and business
+// logic while controlling the canteen's food menu.
 class MenuRepository {
   static final MenuRepository _instance = MenuRepository._internal();
   final MenuApiService _menuApiService = MenuApiService();

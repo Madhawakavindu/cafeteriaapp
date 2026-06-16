@@ -1,6 +1,8 @@
 import 'package:uuid/uuid.dart';
 import 'firestore_service.dart';
 
+//abstraction layer
+
 class MenuApiService {
   final FirestoreService _firestoreService = FirestoreService();
   static const uuid = Uuid();

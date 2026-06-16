@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+//Creating a simple screen (UI Layout) that displays the details of a specific meal selected by the user from the canteen menu.
 class MealDetailScreen extends StatelessWidget {
   final String canteenId, date, mealType, foodName;
   const MealDetailScreen({
